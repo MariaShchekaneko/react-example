@@ -19,7 +19,7 @@ app.use(express.static(__dirname + "/../client"));
 //Make app automatically parse json content
 app.use(bodyParser.json());
 
-var customers=[];
+var customers=[]; // fungerer som lagring
 customers.push(new Customer("Ola", "Trondheim"));
 customers.push(new Customer("Kari", "Oslo"));
 customers.push(new Customer("Per", "Tromsø"));
@@ -35,8 +35,21 @@ app.get('/customers', (request, response) => {
   response.send(customer_id_and_names);
 });
 
+app.delete('/customers', (request,response)=>{
+  console.log("About to delete.",request.body.id);
+  for(var c=0;c<customers.length;c++) {
+    if(customers[c].id==request.body.id) {
+      customers.splice(c,1);
+      console.log(customers);
+      response.send({status:200, msg:"GJ"});
+      return;
+    }
+  }
+})
+
 //Get one customer given its id
 app.get('/customers/:id', (request, response) => {
+  console.log(request.params.id);
   for(var c=0;c<customers.length;c++) {
     if(customers[c].id==request.params.id) {
       response.send(customers[c]);
@@ -47,8 +60,20 @@ app.get('/customers/:id', (request, response) => {
   response.sendStatus(404);
 });
 
+app.put('/customer', (req,res) =>{
+  console.log(req.path,req.body);
+  for(var c=0;c<customers.length;c++){
+    if(customers[c].id == req.body.id){
+      customers[c].name = req.body.name;
+      customers[c].city = req.body.city;
+      res.send(true);
+    }
+  }
+})
+
 //Add new customer if name and city contain data
 app.post('/customers', (request, response) => {
+  console.log(request.body);
   if(request.body.name && request.body.city) {
     customers.push(new Customer(request.body.name, request.body.city));
     response.send(customers[customers.length-1].id.toString());
